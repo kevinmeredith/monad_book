@@ -17,18 +17,22 @@ recurs amt =
 
 next_coin :: Int -> StMach Int
 next_coin coin = state $ \coins -> 
-				case matchingCoin coins coin of
+				case maxChangeCoin coins coin of
 					Just m  -> (5, delete m coins)
-					Nothing -> (0, coins)
+					Nothing -> (0, removeMaxCoin coins)
 
-matchingCoin :: Ord a => [a] -> a -> Maybe a
-matchingCoin xs a =  
+maxChangeCoin :: Ord a => [a] -> a -> Maybe a
+maxChangeCoin xs a =  
  let 
    filtered = filter (<= a) xs
  in 
    case filtered of 
    	[] -> Nothing
    	as -> Just (maximum as)
+
+removeMaxCoin :: Ord a => [a] -> [a]
+removeMaxCoin [] = []
+removeMaxCoin xs = delete (maximum xs) xs
 
 -- author: Monad Book
 dispense :: Int -> StMach ()
@@ -42,3 +46,10 @@ dispense i =
      cents = if i==1 
                 then " cent" 
                 else " cents"
+
+f :: StateT [Int] IO Int
+f = state $ \xs -> update (error "I want int") xs
+
+update :: Int -> [Int] -> (Int, [Int])      
+update x []     = (x, [])
+update x (y:ys) = (x+y, ys)        
