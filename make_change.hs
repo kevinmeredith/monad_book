@@ -5,21 +5,25 @@ type Coins = [Int]
 
 type StMach a = StateT Coins IO a
 
-make_change :: Coins -> Int -> IO (Int, Coins) -- IO ()
-make_change coins amt = runStateT (recurs amt) coins
+make_change :: Coins -> Int -> IO () -- IO (Int, Coins) 
+make_change coins amt = runStateT (recurs amt) coins *> return ()
 
 -- author: Monad Book
 recurs :: Int -> StMach Int
 recurs amt = 
 	if amt == 0
 		then return amt
-		else next_coin amt >>= recurs
+		else (next_coin amt >>= recurs)	
 
 next_coin :: Int -> StMach Int
-next_coin coin = state $ \coins -> 
-				case maxChangeCoin coins coin of
-					Just m  -> (5, delete m coins)
-					Nothing -> (0, removeMaxCoin coins)
+next_coin amt = do 
+	s      <- state $ \coins -> 
+		 	case maxChangeCoin coins amt of
+				Just m  -> (amt - m, delete m coins)
+				Nothing -> (amt, removeMaxCoin coins)
+	innerS <- get
+	lift $ putStrLn $ "(" ++ (show amt) ++ ", " ++ (show innerS) ++ ")"
+	return s
 
 maxChangeCoin :: Ord a => [a] -> a -> Maybe a
 maxChangeCoin xs a =  
@@ -47,8 +51,11 @@ dispense i =
                 then " cent" 
                 else " cents"
 
-f :: StateT [Int] IO Int
-f = state $ \xs -> update (error "I want int") xs
+-- credit for help: http://stackoverflow.com/a/44029311/409976
+f :: Int -> StateT [Int] IO Int
+f i = state $ \xs -> case xs of
+	[]     -> (i, [])
+	(a:as) -> (i+a, as)
 
 update :: Int -> [Int] -> (Int, [Int])      
 update x []     = (x, [])
