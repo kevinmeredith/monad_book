@@ -17,12 +17,12 @@ recurs amt =
 
 next_coin :: Int -> StMach Int
 next_coin amt = do 
+	innerS <- get
+	lift $ putStrLn $ "(" ++ (show amt) ++ ", " ++ (show innerS) ++ ")"	
 	s      <- state $ \coins -> 
 		 	case maxChangeCoin coins amt of
 				Just m  -> (amt - m, delete m coins)
 				Nothing -> (amt, removeMaxCoin coins)
-	innerS <- get
-	lift $ putStrLn $ "(" ++ (show amt) ++ ", " ++ (show innerS) ++ ")"
 	return s
 
 maxChangeCoin :: Ord a => [a] -> a -> Maybe a
