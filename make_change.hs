@@ -5,6 +5,16 @@ type Coins = [Int]
 
 type StMach a = StateT Coins IO a
 
+main :: IO ()
+main = 
+  let 
+    coins = [1,5,10,25]
+  in
+    do 
+      putStrLn "Enter an amount: "
+      input <- getLine
+      make_change coins (read input)
+
 make_change :: Coins -> Int -> IO () -- IO (Int, Coins) 
 make_change coins amt = runStateT (recurs amt) coins *> return ()
 
@@ -15,13 +25,15 @@ recurs amt =
 		then return amt
 		else (next_coin amt >>= recurs)	
 
+--if amount is less than (max coins), then delete the max from coins
+--otherwise subtract amount and delete that elem from coins (unless it's 1)
 next_coin :: Int -> StMach Int
 next_coin amt = do 
 	innerS <- get
 	lift $ putStrLn $ "(" ++ (show amt) ++ ", " ++ (show innerS) ++ ")"	
 	s      <- state $ \coins -> 
 		 	case maxChangeCoin coins amt of
-				Just m  -> (amt - m, delete m coins)
+				Just m  -> (amt - m, if (m == 1) then coins else delete m coins)
 				Nothing -> (amt, removeMaxCoin coins)
 	return s
 
@@ -34,9 +46,10 @@ maxChangeCoin xs a =
    	[] -> Nothing
    	as -> Just (maximum as)
 
-removeMaxCoin :: Ord a => [a] -> [a]
-removeMaxCoin [] = []
-removeMaxCoin xs = delete (maximum xs) xs
+removeMaxCoin :: (Num a, Ord a) => [a] -> [a]
+removeMaxCoin []  = []
+removeMaxCoin [1] = [1]
+removeMaxCoin xs  = delete (maximum xs) xs
 
 -- author: Monad Book
 dispense :: Int -> StMach ()
