@@ -51,11 +51,6 @@ coinState xs a =
      	[] -> PennyMatch
      	as -> FoundChange (maximum as)
 
-removeMaxCoin :: (Num a, Ord a) => [a] -> [a]
-removeMaxCoin []  = []
-removeMaxCoin [1] = [1]
-removeMaxCoin xs  = delete (maximum xs) xs
-
 -- author: Monad Book
 dispense :: Int -> Coins -> StMach ()
 dispense i coins = 
@@ -70,13 +65,3 @@ dispense i coins =
                 then " cent" 
                 else " cents") ++ remaining
      remaining = " with remaining coins: " ++ (show coins)
-
--- credit for help: http://stackoverflow.com/a/44029311/409976
-f :: Int -> StateT [Int] IO Int
-f i = state $ \xs -> case xs of
-	[]     -> (i, [])
-	(a:as) -> (i+a, as)
-
-update :: Int -> [Int] -> (Int, [Int])      
-update x []     = (x, [])
-update x (y:ys) = (x+y, ys)        
